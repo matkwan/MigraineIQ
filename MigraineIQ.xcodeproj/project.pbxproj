@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C5E4C0982FA5FE7600CC787D /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C5E4C0972FA5FE7600CC787D /* Config.xcconfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C5E4BFF42FA5C01F00CC787D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,11 +31,25 @@
 		C5E4BFE42FA5C01D00CC787D /* MigraineIQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MigraineIQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5E4BFF32FA5C01F00CC787D /* MigraineIQTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MigraineIQTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5E4BFFD2FA5C01F00CC787D /* MigraineIQUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MigraineIQUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5E4C0972FA5FE7600CC787D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C5E4C09A2FA5FF2900CC787D /* Exceptions for "MigraineIQ" folder in "MigraineIQ" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C5E4BFE32FA5C01D00CC787D /* MigraineIQ */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C5E4BFE62FA5C01D00CC787D /* MigraineIQ */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C5E4C09A2FA5FF2900CC787D /* Exceptions for "MigraineIQ" folder in "MigraineIQ" target */,
+			);
 			path = MigraineIQ;
 			sourceTree = "<group>";
 		};
@@ -75,6 +93,7 @@
 		C5E4BFDB2FA5C01D00CC787D = {
 			isa = PBXGroup;
 			children = (
+				C5E4C0972FA5FE7600CC787D /* Config.xcconfig */,
 				C5E4BFE62FA5C01D00CC787D /* MigraineIQ */,
 				C5E4BFF62FA5C01F00CC787D /* MigraineIQTests */,
 				C5E4C0002FA5C01F00CC787D /* MigraineIQUITests */,
@@ -212,6 +231,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C5E4C0982FA5FE7600CC787D /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +291,7 @@
 /* Begin XCBuildConfiguration section */
 		C5E4C0052FA5C01F00CC787D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C5E4C0972FA5FE7600CC787D /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -335,6 +356,7 @@
 		};
 		C5E4C0062FA5C01F00CC787D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C5E4C0972FA5FE7600CC787D /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -400,6 +422,7 @@
 				DEVELOPMENT_TEAM = HDKNFP6RLZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MigraineIQ/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,6 +455,7 @@
 				DEVELOPMENT_TEAM = HDKNFP6RLZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MigraineIQ/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

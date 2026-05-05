@@ -1,0 +1,29 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Secrets — never commit
+Config.xcconfig
+MigraineIQ/Info.plist.local
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# CocoaPods (if used)
+Pods/
+
+# macOS
+.DS_Store
+
+# Cloudflare Worker
+CloudflareWorker/node_modules/
+CloudflareWorker/.wrangler/
+CloudflareWorker/.dev.vars

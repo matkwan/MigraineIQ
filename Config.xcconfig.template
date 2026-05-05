@@ -1,0 +1,13 @@
+// Copy this file to `Config.xcconfig` and fill in real values.
+// Config.xcconfig MUST be gitignored — never commit secrets.
+
+// The deployed Cloudflare Worker URL.
+// Example: APP_PROXY_URL = https:/$()/migraineiq-ai-proxy.codevibelab.workers.dev
+//   (the $()  hack is required because xcconfig treats // as a comment)
+APP_PROXY_URL = https:/$()/<your-worker>.workers.dev
+
+// The shared secret. Generate locally with:
+//   openssl rand -hex 32
+// then run the same value through `wrangler secret put APP_PROXY_SECRET`
+// so the worker and the app know the same string.
+APP_PROXY_SECRET = <paste-32-byte-hex-here>

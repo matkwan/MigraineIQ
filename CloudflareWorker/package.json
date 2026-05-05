@@ -1,0 +1,16 @@
+{
+  "name": "migraineiq-ai-proxy",
+  "version": "0.1.0",
+  "description": "Cloudflare Worker proxy for MigraineIQ — shared-secret auth, OpenAI-backed AI endpoints.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --local",
+    "tail": "wrangler tail",
+    "kv:create": "wrangler kv namespace create RATE_KV"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

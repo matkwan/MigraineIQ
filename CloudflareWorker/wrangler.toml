@@ -1,0 +1,25 @@
+name = "migraineiq-ai-proxy"
+main = "src/worker.js"
+compatibility_date = "2025-04-01"
+account_id = ""    # fill in via `wrangler login` or `wrangler whoami`
+
+# ── KV namespace (OPTIONAL — for per-install rate-limit counters) ────────
+# Skip this for dev. Without RATE_KV the worker simply doesn't enforce
+# rate limits — relies on your OpenAI spend cap as the safety net.
+#
+# Before TestFlight / public launch, create it:
+#   npx wrangler kv namespace create RATE_KV
+# then uncomment the block below and paste the printed `id`.
+#
+# [[kv_namespaces]]
+# binding = "RATE_KV"
+# id = "<paste-id-here>"
+
+# ── Secrets (set via `wrangler secret put NAME`) ─────────────────────────
+# OPENAI_API_KEY      — your OpenAI API key
+# APP_PROXY_SECRET    — `openssl rand -hex 32`, shared with the iOS app
+
+# ── Observability ────────────────────────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0   # log everything during launch; lower in production
