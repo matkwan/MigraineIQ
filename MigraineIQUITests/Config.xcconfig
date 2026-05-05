@@ -1,0 +1,7 @@
+// Config.xcconfig
+// VoxForm — DO NOT COMMIT. This file is in .gitignore.
+// Note: // is a comment in xcconfig — use $(SLASH) to include // in values.
+
+SLASH = /
+APP_PROXY_URL = https:/$()/voxform-proxy.kieny.workers.dev
+APP_PROXY_SECRET = ec53504d58ba9a6ea7efb7d186f620c1a69d533e58a91829b892ad06fe11a9a0
