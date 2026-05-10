@@ -7,9 +7,9 @@ import Foundation
 
 @MainActor
 final class MedicationRepository: MedicationRepositoryProtocol {
-    private let local: MedicationLocalDataSource
+    private let local: any MedicationLocalDataSourceProtocol
 
-    init(local: MedicationLocalDataSource) {
+    init(local: any MedicationLocalDataSourceProtocol) {
         self.local = local
     }
 

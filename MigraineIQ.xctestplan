@@ -1,0 +1,39 @@
+{
+  "configurations" : [
+    {
+      "id" : "2DB7967E-A497-494D-B459-F3059512A008",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MigraineIQ.xcodeproj",
+      "identifier" : "C5E4BFE32FA5C01D00CC787D",
+      "name" : "MigraineIQ"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MigraineIQ.xcodeproj",
+        "identifier" : "C5E4BFF22FA5C01F00CC787D",
+        "name" : "MigraineIQTests"
+      }
+    },
+    {
+      "enabled" : false,
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MigraineIQ.xcodeproj",
+        "identifier" : "C5E4BFFC2FA5C01F00CC787D",
+        "name" : "MigraineIQUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

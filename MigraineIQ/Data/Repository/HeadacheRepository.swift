@@ -12,9 +12,9 @@ import Foundation
 
 @MainActor
 final class HeadacheRepository: HeadacheRepositoryProtocol {
-    private let local: HeadacheLocalDataSource
+    private let local: any HeadacheLocalDataSourceProtocol
 
-    init(local: HeadacheLocalDataSource) {
+    init(local: any HeadacheLocalDataSourceProtocol) {
         self.local = local
     }
 

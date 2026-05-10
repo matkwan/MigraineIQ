@@ -2,44 +2,24 @@
 //  SettingsView.swift
 //  MigraineIQ
 //
+//  Shell view — reads the container from the environment, makes the
+//  ViewModel, hands it to SettingsContentView. Required because @Environment
+//  is not available inside `init()`.
+//
 
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(DependencyContainer.self) private var container
+
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
-                            .foregroundStyle(.secondary)
-                    }
-                    HStack {
-                        Text("Install ID")
-                        Spacer()
-                        Text(InstallIdentity.current.prefix(8) + "…")
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Section("Coming next") {
-                    Text("Notification preferences (Phase 4)")
-                    Text("HealthKit + WeatherKit permissions (Phase 4)")
-                    Text("Subscription management (Phase 5)")
-                    Text("Export data + privacy controls (Phase 6)")
-                }
-                .foregroundStyle(.secondary)
-            }
-            .scrollContentBackground(.hidden)
-            .background(AppTheme.Colors.background)
-            .navigationTitle("Settings")
-        }
+        SettingsContentView(viewModel: container.makeSettingsViewModel())
     }
 }
 
-#Preview {
-    SettingsView()
-        .preferredColorScheme(.dark)
-}
+// MARK: - Previews ---------------------------------------------------------- TOBEFIXED
+
+//#Preview {
+//    SettingsView()
+//        .environment(DependencyContainer.preview())
+//}

@@ -21,6 +21,7 @@ final class SwiftDataStack {
             CachedHeadacheEvent.self,
             CachedAuraEvent.self,
             CachedMedicationDose.self,
+            CachedWeatherSnapshot.self,
         ])
         let config = ModelConfiguration(
             schema: schema,

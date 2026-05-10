@@ -9,6 +9,13 @@ struct LogView: View {
     @Environment(DependencyContainer.self) private var container
 
     var body: some View {
-        LogContentView(viewModel: container.makeLogViewModel())
+        QuickLogContentView(viewModel: container.makeQuickLogViewModel())
     }
 }
+
+// MARK: - Previews ---------------------------------------------------------- TOBEFIXED
+
+//#Preview {
+//    LogView()
+//        .environment(DependencyContainer.preview())
+//}

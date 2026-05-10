@@ -17,7 +17,7 @@ import Foundation
 import Security
 
 enum InstallIdentity {
-    private static let service = "com.codevibelab.migraineiq.identity"
+    private static let service = "com.kieny.migraineiq.identity"
     private static let account = "install_id"
 
     /// Returns the install UUID, generating one on first call.

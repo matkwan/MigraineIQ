@@ -74,6 +74,8 @@ export async function handlePredict(request, env) {
   });
 
   if (!aiResponse.ok) {
+    const errText = await aiResponse.text();
+    console.error("openai_predict_error", aiResponse.status, errText);
     return new Response(JSON.stringify({ error: "ai_provider_error" }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
@@ -82,6 +84,13 @@ export async function handlePredict(request, env) {
 
   const data = await aiResponse.json();
   const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    console.error("openai_predict_empty", JSON.stringify(data));
+    return new Response(JSON.stringify({ error: "ai_empty_response" }), {
+      status: 502,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   return new Response(content, {
     status: 200,

@@ -45,6 +45,9 @@ enum ClinicalConstants {
     // 3 months. Bands per Lipton & Stewart (2001):
 
     enum MIDAS {
+        /// Calendar days in the MIDAS look-back window (3 months).
+        static let windowDays = 90
+
         enum Grade {
             case littleOrNone        // 0–5
             case mild                // 6–10
@@ -67,6 +70,9 @@ enum ClinicalConstants {
     // 6 questions, each scored 6/8/10/11/13. Total range 36–78.
 
     enum HIT6 {
+        /// Calendar days in the HIT-6 look-back window ("past 4 weeks").
+        static let windowDays = 28
+
         enum Impact {
             case little   // ≤49
             case some     // 50–55
@@ -101,5 +107,25 @@ enum ClinicalConstants {
     enum Pain {
         /// Numeric rating scale 0–10.
         static let nrsRange: ClosedRange<Int> = 0...10
+    }
+
+    // MARK: - AI analysis windows ----------------------------------------
+    //
+    // Time windows used by the three AI Use Cases. Centralised here so
+    // the proxy prompt and the app's data-fetch stay in sync.
+
+    enum AI {
+        /// Days of headache history sent to the trigger-analysis endpoint.
+        /// ICHD-3 requires a 3-month window for chronic classification;
+        /// 90 days gives adequate sample size for personalised patterns.
+        static let triggerAnalysisWindowDays: Double = 90
+
+        /// Days of recent attacks included in the 24-hour risk prediction.
+        /// Shorter window keeps the prompt focused on the current pattern.
+        static let riskPredictionWindowDays: Double = 14
+
+        /// Hours of lookback data included in the AI Coach context.
+        /// 72 hours covers the full attack-plus-postdrome cycle.
+        static let coachContextWindowHours: Double = 72
     }
 }

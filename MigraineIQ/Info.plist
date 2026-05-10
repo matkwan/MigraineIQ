@@ -6,5 +6,26 @@
 	<string>$(APP_PROXY_SECRET)</string>
 	<key>APP_PROXY_URL</key>
 	<string>$(APP_PROXY_URL)</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.kieny.migraineiq.nightly-risk</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string></string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>migraineiq</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

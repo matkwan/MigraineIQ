@@ -1,0 +1,79 @@
+{
+  "identifier" : "MigraineIQ",
+  "nonConsumableProducts" : [],
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrorCode" : 0,
+    "_timeRate" : "MONTHLY_RENEWAL_EVERY_30_MINUTES"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "20F3A1B2-9C4D-4E5F-A678-B91C2D3E4F50",
+      "localizations" : [],
+      "name" : "MigraineIQ Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "7.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+          "introductoryOffer" : {
+            "duration" : "P7D",
+            "offerIdentifier" : "",
+            "offerMode" : "FREE_TRIAL",
+            "periodCount" : 1
+          },
+          "localizations" : [
+            {
+              "description" : "Unlock AI risk forecasts, personal trigger analysis, AI Coach, doctor-ready PDF reports, and HealthKit integration.",
+              "displayName" : "MigraineIQ Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.kieny.migraineiq.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro Monthly",
+          "subscriptionGroupID" : "20F3A1B2-9C4D-4E5F-A678-B91C2D3E4F50",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "59.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "B2C3D4E5-F6A7-8901-BCDE-F12345678901",
+          "introductoryOffer" : {
+            "duration" : "P7D",
+            "offerIdentifier" : "",
+            "offerMode" : "FREE_TRIAL",
+            "periodCount" : 1
+          },
+          "localizations" : [
+            {
+              "description" : "Unlock AI risk forecasts, personal trigger analysis, AI Coach, doctor-ready PDF reports, and HealthKit integration. Save 38% vs monthly.",
+              "displayName" : "MigraineIQ Pro Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.kieny.migraineiq.pro.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro Annual",
+          "subscriptionGroupID" : "20F3A1B2-9C4D-4E5F-A678-B91C2D3E4F50",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}
