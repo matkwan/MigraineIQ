@@ -179,8 +179,11 @@ final class DashboardViewModel {
             persistRisk(alert)
             TokenGuard.recordRiskForecastUse()
         } catch {
-            // Prefer a stale cached result over a red error card.
-            if let stale = cachedRisk() {
+            // Prefer a non-expired cached result over a red error card.
+            // An expired (stale) entry is not used here — it would be more
+            // confusing to show yesterday's forecast on a fresh error than
+            // to surface the error directly.
+            if let stale = cachedRisk(), !stale.isExpired {
                 self.todayRisk = stale
                 self.riskState = .loaded(stale)
             } else {

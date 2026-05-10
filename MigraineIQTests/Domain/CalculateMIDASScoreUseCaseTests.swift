@@ -160,15 +160,15 @@ struct CalculateMIDASScoreUseCaseTests {
 
     // MARK: - Grade boundaries
 
-//    @Test("Score 5 → .littleOrNone: TOBEFIXED")
-//    func gradeI() {
-//        // 3 reduced-productivity hours is below the Q2 threshold (4 hrs),
-//        // so only Q5 fires (hasAnyImpact = true). 5 events × Q5=1 = total 5.
-//        let events = (1...5).map { event(daysAgo: $0, reducedProductivity: 3) }
-//        let result = sut.execute(events: events, referenceDate: reference)
-//        #expect(result.totalScore == 5)
-//        #expect(result.grade == .littleOrNone)
-//    }
+    @Test("Score 5 → .littleOrNone")
+    func gradeI() {
+        // 3 reduced-productivity hours is below the Q2 threshold (4 hrs),
+        // so only Q5 fires (hasAnyImpact = true). 5 events × Q5=1 = total 5.
+        let events = (1...5).map { event(daysAgo: $0, reducedProductivity: 3) }
+        let result = sut.execute(events: events, referenceDate: reference)
+        #expect(result.totalScore == 5)
+        #expect(result.grade == .littleOrNone)
+    }
 
     @Test("Grade .littleOrNone for score 0")
     func gradeLittleOrNoneScore0() {

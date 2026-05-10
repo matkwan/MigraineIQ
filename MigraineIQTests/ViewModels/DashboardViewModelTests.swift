@@ -75,45 +75,62 @@ struct DashboardViewModelTests {
         #expect(sut.riskState == .loading)
     }
 
-//    @Test("loadRisk transitions to .loaded with the stubbed alert: TOBEFIXED")
-//    func loadRiskSuccess() async {
-//        let mockAI = MockAIInsightsRepository()
-//        mockAI.stubbedAlert = .mockElevatedRisk
-//
-//        let sut = DashboardViewModel(
-//            headacheRepository: MockHeadacheRepository(), medicationRepository: MockMedicationRepository(),
-//            aiInsightsRepository: mockAI
-//        )
-//
-//        await sut.loadRisk()
-//
-//        guard case .loaded(let alert) = sut.riskState else {
-//            Issue.record("Expected .loaded, got \(sut.riskState)")
-//            return
-//        }
-//        #expect(alert.riskLevel == .elevated)
-//        #expect(sut.todayRisk?.riskLevel == .elevated)
-//    }
+    @Test("loadRisk transitions to .loaded with the stubbed alert")
+    func loadRiskSuccess() async {
+        // Reset TokenGuard counters and stale risk cache so loadRisk reaches the AI call.
+        TokenGuard.resetAll()
+        UserDefaults.standard.removeObject(forKey: "com.migraineiq.cachedRiskAlert")
 
-//    @Test("loadRisk transitions to .failed and preserves a readable message on AI error: TOBEFIXED")
-//    func loadRiskFailure() async {
-//        let mockAI = MockAIInsightsRepository()
-//        mockAI.errorToThrow = AppError.ai("proxy unreachable")
-//
-//        let sut = DashboardViewModel(
-//            headacheRepository: MockHeadacheRepository(), medicationRepository: MockMedicationRepository(),
-//            aiInsightsRepository: mockAI
-//        )
-//
-//        await sut.loadRisk()
-//
-//        guard case .failed(let message) = sut.riskState else {
-//            Issue.record("Expected .failed, got \(sut.riskState)")
-//            return
-//        }
-//        #expect(message.contains("proxy unreachable"))
-//        #expect(sut.todayRisk == nil)
-//    }
+        let mockHeadache = MockHeadacheRepository()
+        mockHeadache.stubbedRange = HeadacheEvent.mockList   // non-empty so .noData guard passes
+        let mockAI = MockAIInsightsRepository()
+        mockAI.stubbedAlert = .mockElevatedRisk
+
+        let sut = DashboardViewModel(
+            headacheRepository: mockHeadache,
+            medicationRepository: MockMedicationRepository(),
+            aiInsightsRepository: mockAI
+        )
+
+        // force: true bypasses the UserDefaults cache check entirely — no stale entry can interfere.
+        await sut.loadRisk(force: true)
+
+        guard case .loaded(let alert) = sut.riskState else {
+            Issue.record("Expected .loaded, got \(sut.riskState)")
+            return
+        }
+        #expect(alert.riskLevel == .elevated)
+        #expect(sut.todayRisk?.riskLevel == .elevated)
+    }
+
+    @Test("loadRisk transitions to .failed and preserves a readable message on AI error")
+    func loadRiskFailure() async {
+        // Reset TokenGuard counters and mark any cached risk as expired so the
+        // catch-block stale fallback in loadRisk() cannot serve it.
+        TokenGuard.resetAll()
+        DashboardViewModel.invalidateRiskCache()
+
+        let mockHeadache = MockHeadacheRepository()
+        mockHeadache.stubbedRange = HeadacheEvent.mockList   // non-empty so .noData guard passes
+        let mockAI = MockAIInsightsRepository()
+        mockAI.errorToThrow = AppError.ai("proxy unreachable")
+
+        let sut = DashboardViewModel(
+            headacheRepository: mockHeadache,
+            medicationRepository: MockMedicationRepository(),
+            aiInsightsRepository: mockAI
+        )
+
+        // force: true bypasses the UserDefaults cache check entirely — no stale entry can interfere.
+        await sut.loadRisk(force: true)
+
+        guard case .failed(let message) = sut.riskState else {
+            Issue.record("Expected .failed, got \(sut.riskState)")
+            return
+        }
+        #expect(message.contains("proxy unreachable"))
+        #expect(sut.todayRisk == nil)
+    }
 
     @Test("loadRisk is a no-op when AI repo is nil")
     func loadRiskNoOpWithoutAI() async {
@@ -123,16 +140,24 @@ struct DashboardViewModelTests {
         #expect(sut.todayRisk == nil)
     }
 
-//  @Test("loadDashboard calls predictNext24h exactly once when AI is configured: TOBEFIXED")
-//    func loadDashboardCallsAI() async {
-//        let mockAI = MockAIInsightsRepository()
-//        let sut = DashboardViewModel(
-//            headacheRepository: MockHeadacheRepository(), medicationRepository: MockMedicationRepository(),
-//            aiInsightsRepository: mockAI
-//        )
-//
-//        await sut.loadDashboard()
-//
-//        #expect(mockAI.predictCallCount == 1)
-//    }
+    @Test("loadDashboard calls predictNext24h exactly once when AI is configured")
+    func loadDashboardCallsAI() async {
+        // Reset TokenGuard counters and stale risk cache so the AI is actually invoked.
+        TokenGuard.resetAll()
+        UserDefaults.standard.removeObject(forKey: "com.migraineiq.cachedRiskAlert")
+
+        let mockHeadache = MockHeadacheRepository()
+        mockHeadache.stubbedRange = HeadacheEvent.mockList   // non-empty so .noData guard passes
+        let mockAI = MockAIInsightsRepository()
+        let sut = DashboardViewModel(
+            headacheRepository: mockHeadache,
+            medicationRepository: MockMedicationRepository(),
+            aiInsightsRepository: mockAI
+        )
+
+        // force: true bypasses the UserDefaults cache check so the AI is always invoked.
+        await sut.loadDashboard(force: true)
+
+        #expect(mockAI.predictCallCount == 1)
+    }
 }
