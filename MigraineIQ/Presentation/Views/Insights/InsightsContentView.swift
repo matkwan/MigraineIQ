@@ -10,6 +10,7 @@ import SwiftUI
 
 struct InsightsContentView: View {
     @State var viewModel: TriggersViewModel
+    @State var midasViewModel: MIDASTrendViewModel
     @State private var showCoach = false
     @State private var showPaywall = false
 
@@ -17,6 +18,7 @@ struct InsightsContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.m) {
+                    MIDASTrendView(viewModel: midasViewModel)
                     triggersSection
                     coachLinkCard
                 }

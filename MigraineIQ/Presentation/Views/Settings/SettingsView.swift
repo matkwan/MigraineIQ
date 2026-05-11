@@ -13,7 +13,16 @@ struct SettingsView: View {
     @Environment(DependencyContainer.self) private var container
 
     var body: some View {
+        #if DEBUG
+        SettingsContentView(
+            viewModel: container.makeSettingsViewModel(),
+            onSeedSampleData: {
+                await SampleDataSeeder.seed(into: container.headacheRepository)
+            }
+        )
+        #else
         SettingsContentView(viewModel: container.makeSettingsViewModel())
+        #endif
     }
 }
 

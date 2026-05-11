@@ -11,11 +11,15 @@ import SwiftUI
 
 struct HeadacheDetailView: View {
     let event: HeadacheEvent
+    /// Pass `true` when creating a brand-new event so the form shows
+    /// "Add Attack" and a Cancel button instead of "Edit Attack".
+    var isNew: Bool = false
     @Environment(DependencyContainer.self) private var container
 
     var body: some View {
         HeadacheDetailContentView(
-            viewModel: container.makeHeadacheDetailViewModel(event: event)
+            viewModel: container.makeHeadacheDetailViewModel(event: event),
+            isNew: isNew
         )
     }
 }

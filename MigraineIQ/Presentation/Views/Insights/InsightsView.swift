@@ -13,7 +13,10 @@ struct InsightsView: View {
     @Environment(DependencyContainer.self) private var container
 
     var body: some View {
-        InsightsContentView(viewModel: container.makeTriggersViewModel())
+        InsightsContentView(
+            viewModel:      container.makeTriggersViewModel(),
+            midasViewModel: container.makeMIDASTrendViewModel()
+        )
     }
 }
 

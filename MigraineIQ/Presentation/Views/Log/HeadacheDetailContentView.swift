@@ -23,12 +23,18 @@ import SwiftUI
 
 struct HeadacheDetailContentView: View {
     @Bindable var viewModel: HeadacheDetailViewModel
+    /// When `true` the form is being used to create a new attack (title =
+    /// "Add Attack" and a Cancel button is shown). When `false` it is editing
+    /// an existing event (title = "Edit Attack", no extra Cancel button needed
+    /// since a back button or sheet drag-to-dismiss is available).
+    var isNew: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirmation = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.m) {
+                timePickerSection
                 copyFromLastCard
                 intensitySection
                 typeSection
@@ -44,11 +50,15 @@ struct HeadacheDetailContentView: View {
             .padding(AppTheme.Spacing.m)
         }
         .background(AppTheme.Colors.background)
-        .navigationTitle("Edit attack")
+        .navigationTitle(isNew ? "Add Attack" : "Edit Attack")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .task { await viewModel.loadLastAttack() }
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+                    .foregroundStyle(AppTheme.Colors.secondaryText)
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { viewModel.save() }
                     .disabled(viewModel.saveState == .saving)
@@ -68,6 +78,36 @@ struct HeadacheDetailContentView: View {
         .onChange(of: viewModel.saveState) { _, newState in
             if case .saved    = newState { dismiss() }
             if case .deleted  = newState { dismiss() }
+        }
+    }
+
+    // MARK: - Time picker
+
+    private var timePickerSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+            Text("ATTACK TIME")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(AppTheme.Colors.tertiaryText)
+                .kerning(0.8)
+
+            HStack {
+                Image(systemName: "clock")
+                    .foregroundStyle(AppTheme.Colors.accent)
+                    .font(.system(size: 15, weight: .medium))
+
+                DatePicker(
+                    "",
+                    selection: $viewModel.startedAt,
+                    in: ...Date(),
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+                .labelsHidden()
+                .tint(AppTheme.Colors.accent)
+            }
+            .padding(AppTheme.Spacing.m)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppTheme.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.card, style: .continuous))
         }
     }
 

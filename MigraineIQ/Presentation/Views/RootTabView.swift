@@ -2,8 +2,15 @@
 //  RootTabView.swift
 //  MigraineIQ
 //
-//  The 4-tab shell that wraps everything. Reads the DependencyContainer
+//  The 5-tab shell that wraps everything. Reads the DependencyContainer
 //  from the environment and hands it down to each tab's view.
+//
+//  Tab indices:
+//    0 — Today (Dashboard)
+//    1 — Log
+//    2 — Calendar
+//    3 — Insights
+//    4 — Settings
 //
 
 import SwiftUI
@@ -23,13 +30,17 @@ struct RootTabView: View {
                 .tabItem { Label("Log", systemImage: "plus.circle.fill") }
                 .tag(1)
 
+            CalendarView()
+                .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(2)
+
             InsightsView()
                 .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
-                .tag(2)
+                .tag(3)
 
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                .tag(3)
+                .tag(4)
         }
         .tint(AppTheme.Colors.accent)
         .background(AppTheme.Colors.background.ignoresSafeArea())

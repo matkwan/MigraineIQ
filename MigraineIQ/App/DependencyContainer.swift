@@ -144,6 +144,14 @@ final class DependencyContainer {
         LogDoseViewModel(editing: dose, medicationRepository: medicationRepository)
     }
 
+    func makeCalendarViewModel() -> CalendarViewModel {
+        CalendarViewModel(headacheRepository: headacheRepository)
+    }
+
+    func makeMIDASTrendViewModel() -> MIDASTrendViewModel {
+        MIDASTrendViewModel(headacheRepository: headacheRepository)
+    }
+
     func makeSettingsViewModel() -> SettingsViewModel {
         SettingsViewModel(healthDataRepository: healthDataRepository)
     }

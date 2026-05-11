@@ -28,6 +28,7 @@ final class HeadacheDetailViewModel {
 
     // MARK: - Form fields (all pre-populated from the source event)
 
+    var startedAt: Date
     var intensity: Int
     var classification: ICHD3Classification
     var painLocations: Set<PainLocation>
@@ -62,6 +63,7 @@ final class HeadacheDetailViewModel {
     init(event: HeadacheEvent, headacheRepository: HeadacheRepositoryProtocol) {
         self.source             = event
         self.headacheRepository = headacheRepository
+        self.startedAt          = event.startedAt
         self.intensity          = event.intensity
         self.classification     = event.classification
         self.painLocations      = event.painLocations
@@ -87,6 +89,7 @@ final class HeadacheDetailViewModel {
         saveState = .saving
 
         var updated = source
+        updated.startedAt      = startedAt
         updated.intensity      = intensity
         updated.classification = classification
         updated.painLocations  = painLocations

@@ -37,6 +37,10 @@ struct LogDoseContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+                    .foregroundStyle(AppTheme.Colors.secondaryText)
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { viewModel.save() }
                     .disabled(!viewModel.canSave || viewModel.saveState == .saving)

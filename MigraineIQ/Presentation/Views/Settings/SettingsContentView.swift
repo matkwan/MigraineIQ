@@ -15,6 +15,13 @@ struct SettingsContentView: View {
     @State private var showPaywall: Bool = false
     @Bindable private var appState = AppState.shared
 
+    #if DEBUG
+    /// Called when the user taps "Seed Sample Data" in the Developer section.
+    var onSeedSampleData: (() async -> Void)? = nil
+    @State private var isSeedingData = false
+    @State private var seedComplete  = false
+    #endif
+
     var body: some View {
         NavigationStack {
             List {
@@ -25,6 +32,9 @@ struct SettingsContentView: View {
                 reportsSection
                 supportSection
                 appSection
+                #if DEBUG
+                developerSection
+                #endif
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
@@ -442,6 +452,60 @@ struct SettingsContentView: View {
         }
         .padding(.vertical, AppTheme.Spacing.xxs)
     }
+
+    // MARK: - Developer section (DEBUG only)
+
+    #if DEBUG
+    private var developerSection: some View {
+        Section {
+            Button {
+                guard !isSeedingData else { return }
+                isSeedingData = true
+                seedComplete  = false
+                Task {
+                    await onSeedSampleData?()
+                    isSeedingData = false
+                    seedComplete  = true
+                }
+            } label: {
+                HStack(spacing: AppTheme.Spacing.s) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.orange)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Seed Sample Data")
+                            .font(AppTheme.Typography.body)
+                            .foregroundStyle(AppTheme.Colors.primaryText)
+                        Text("Insert 6 months of mock attacks for MIDAS chart")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.secondaryText)
+                    }
+                    Spacer()
+                    if isSeedingData {
+                        ProgressView().tint(Color.orange)
+                    } else if seedComplete {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(AppTheme.Colors.riskLow)
+                    }
+                }
+                .padding(.vertical, AppTheme.Spacing.xxs)
+            }
+            .buttonStyle(.plain)
+            .disabled(isSeedingData)
+        } header: {
+            Text("Developer")
+        } footer: {
+            Text("DEBUG build only — not visible in production.")
+                .font(AppTheme.Typography.caption)
+                .foregroundStyle(AppTheme.Colors.tertiaryText)
+        }
+    }
+    #endif
 
     // MARK: - Helpers
 
