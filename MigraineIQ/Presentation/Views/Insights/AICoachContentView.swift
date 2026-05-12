@@ -126,10 +126,30 @@ struct AICoachContentView: View {
                     }
 
                 // Mic button — only shown when Coach is unlocked and not streaming.
-                // Voice recognition is already Pro-gated via isCoachUnlocked.
+                // Uses the same MicButtonView as the attack and medication forms
+                // for consistent recording UI (red circle, pulse ring, arc).
                 if viewModel.isCoachUnlocked,
                    viewModel.sendState != .streaming {
-                    coachMicButton
+                    Button {
+                        switch speechService.state {
+                        case .recording:
+                            let final = speechService.stop()
+                            if viewModel.inputText.isEmpty, !final.isEmpty {
+                                viewModel.inputText = final
+                            }
+                        case .unavailable:
+                            speechService.resetError()
+                        default:
+                            Task { await speechService.start() }
+                        }
+                    } label: {
+                        MicButtonView(service: speechService)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled({
+                        if case .requestingPermissions = speechService.state { return true }
+                        return false
+                    }())
                 }
 
                 actionButton
@@ -155,52 +175,6 @@ struct AICoachContentView: View {
             // Clean up the service's internal partial transcript.
             speechService.clearTranscript()
         }
-    }
-
-    // MARK: - Coach mic button (compact — fits inline in the input bar)
-
-    @ViewBuilder
-    private var coachMicButton: some View {
-        Button {
-            switch speechService.state {
-            case .recording:
-                // Stop recording; inputText already has the dictated question.
-                let final = speechService.stop()
-                // Edge case: if live updates didn't fire (very short utterance),
-                // use the returned string directly.
-                if viewModel.inputText.isEmpty, !final.isEmpty {
-                    viewModel.inputText = final
-                }
-            case .unavailable:
-                speechService.resetError()
-            default:
-                Task { await speechService.start() }
-            }
-        } label: {
-            Group {
-                switch speechService.state {
-                case .idle:
-                    Image(systemName: "mic")
-                        .foregroundStyle(AppTheme.Colors.tertiaryText)
-                case .recording:
-                    Image(systemName: "mic.fill")
-                        .foregroundStyle(Color.red)
-                case .requestingPermissions:
-                    ProgressView()
-                        .tint(AppTheme.Colors.accent)
-                        .scaleEffect(0.75)
-                case .unavailable:
-                    Image(systemName: "mic.slash")
-                        .foregroundStyle(AppTheme.Colors.riskModerate)
-                }
-            }
-            .font(.system(size: 22))
-            .frame(width: 28, height: 28)
-        }
-        .disabled({
-            if case .requestingPermissions = speechService.state { return true }
-            return false
-        }())
     }
 
     private var offlineBanner: some View {

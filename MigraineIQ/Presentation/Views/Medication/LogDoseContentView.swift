@@ -18,6 +18,9 @@ struct LogDoseContentView: View {
     @Bindable var viewModel: LogDoseViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirmation = false
+    @State private var speechService = SpeechRecognitionService()
+    @State private var showPaywall = false
+    @State private var isManuallyStopping = false
 
     var body: some View {
         ScrollView {
@@ -42,12 +45,15 @@ struct LogDoseContentView: View {
                     .foregroundStyle(AppTheme.Colors.secondaryText)
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { viewModel.save() }
+                Button("Save") { saveForm() }
                     .disabled(!viewModel.canSave || viewModel.saveState == .saving)
                     .foregroundStyle(AppTheme.Colors.accent)
             }
         }
         .task { await viewModel.loadRecentNames() }
+        .onDisappear {
+            if case .recording = speechService.state { speechService.stop() }
+        }
         .confirmationDialog(
             "Delete this dose?",
             isPresented: $showDeleteConfirmation,
@@ -199,23 +205,136 @@ struct LogDoseContentView: View {
 
     private var notesSection: some View {
         DoseCard(title: "Notes") {
-            ZStack(alignment: .topLeading) {
-                if viewModel.notes.isEmpty {
-                    Text("Any additional notes…")
-                        .font(AppTheme.Typography.body)
-                        .foregroundStyle(AppTheme.Colors.tertiaryText)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                        .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+
+                // ── Mic button row ────────────────────────────────────────
+                HStack {
+                    Spacer()
+                    micButton
                 }
-                TextEditor(text: $viewModel.notes)
-                    .font(AppTheme.Typography.body)
-                    .foregroundStyle(AppTheme.Colors.primaryText)
-                    .tint(AppTheme.Colors.accent)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: 72)
+
+                // ── Live transcript preview ───────────────────────────────
+                if case .recording = speechService.state {
+                    Text(speechService.partialTranscript.isEmpty
+                         ? "Listening…"
+                         : speechService.partialTranscript)
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(speechService.partialTranscript.isEmpty
+                                         ? AppTheme.Colors.tertiaryText
+                                         : AppTheme.Colors.accent)
+                        .padding(.horizontal, 5)
+                        .transition(.opacity)
+                }
+
+                // ── Unavailable error ─────────────────────────────────────
+                if case .unavailable(let message) = speechService.state {
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppTheme.Colors.riskModerate)
+                        Text(message)
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.secondaryText)
+                        Spacer()
+                        Button("Dismiss") { speechService.resetError() }
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(AppTheme.Colors.accent)
+                    }
+                    .padding(AppTheme.Spacing.xs)
+                    .background(AppTheme.Colors.riskModerate.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+
+                // ── Notes text editor ─────────────────────────────────────
+                ZStack(alignment: .topLeading) {
+                    if viewModel.notes.isEmpty {
+                        Text("Any additional notes…")
+                            .font(AppTheme.Typography.body)
+                            .foregroundStyle(AppTheme.Colors.tertiaryText)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
+                    }
+                    TextEditor(text: $viewModel.notes)
+                        .font(AppTheme.Typography.body)
+                        .foregroundStyle(AppTheme.Colors.primaryText)
+                        .tint(AppTheme.Colors.accent)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 72)
+                }
             }
         }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .onChange(of: speechService.state) { oldState, newState in
+            guard case .recording = oldState, case .idle = newState else { return }
+            guard !isManuallyStopping else { return }
+            appendTranscript(speechService.partialTranscript)
+            speechService.clearTranscript()
+        }
+    }
+
+    // MARK: - Mic button
+
+    @ViewBuilder
+    private var micButton: some View {
+        if SubscriptionManager.shared.isProSubscriber {
+            Button {
+                if case .recording = speechService.state {
+                    isManuallyStopping = true
+                    let transcript = speechService.stop()
+                    appendTranscript(transcript)
+                    isManuallyStopping = false
+                } else {
+                    Task { await speechService.start() }
+                }
+            } label: {
+                MicButtonView(service: speechService)
+            }
+            .buttonStyle(.plain)
+            .disabled({
+                if case .requestingPermissions = speechService.state { return true }
+                return false
+            }())
+        } else {
+            Button { showPaywall = true } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("PRO")
+                        .font(.system(size: 10, weight: .bold))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(AppTheme.Colors.accent.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+                .foregroundStyle(AppTheme.Colors.tertiaryText)
+                .padding(.horizontal, AppTheme.Spacing.s)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .background(AppTheme.Colors.elevatedSurface)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(AppTheme.Colors.tertiaryText.opacity(0.25), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Dictation + save helpers
+
+    private func appendTranscript(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let separator = viewModel.notes.isEmpty ? "" : "\n"
+        viewModel.notes += separator + trimmed
+    }
+
+    private func saveForm() {
+        if case .recording = speechService.state {
+            isManuallyStopping = true
+            let transcript = speechService.stop()
+            appendTranscript(transcript)
+            isManuallyStopping = false
+        }
+        viewModel.save()
     }
 
     // MARK: - 7. Action
@@ -224,7 +343,7 @@ struct LogDoseContentView: View {
     private var actionSection: some View {
         VStack(spacing: AppTheme.Spacing.s) {
             Button {
-                viewModel.save()
+                saveForm()
             } label: {
                 Group {
                     if viewModel.saveState == .saving {
