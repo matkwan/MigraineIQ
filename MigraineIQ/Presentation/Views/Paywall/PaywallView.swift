@@ -312,6 +312,9 @@ private struct ProFeature: Identifiable {
         ProFeature(icon: "moon.stars.fill",
                    title: "Nightly Background Forecast",
                    subtitle: "Wake up to a risk alert before your migraine starts"),
+        ProFeature(icon: "mic.fill",
+                   title: "Voice Transcription",
+                   subtitle: "Dictate attack notes hands-free — no typing during a painful episode"),
     ]
 }
 

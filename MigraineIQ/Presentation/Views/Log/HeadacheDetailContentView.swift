@@ -31,6 +31,13 @@ struct HeadacheDetailContentView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirmation = false
 
+    // MARK: - Voice dictation (Pro)
+    @State private var speechService = SpeechRecognitionService()
+    @State private var showPaywall = false
+    @State private var showPhonophobiaWarning = false
+    /// Guards against double-appending in the explicit-stop path vs onChange.
+    @State private var isManuallyStopping = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.m) {
@@ -60,7 +67,7 @@ struct HeadacheDetailContentView: View {
                     .foregroundStyle(AppTheme.Colors.secondaryText)
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { viewModel.save() }
+                Button("Save") { saveForm() }
                     .disabled(viewModel.saveState == .saving)
                     .foregroundStyle(AppTheme.Colors.accent)
             }
@@ -78,6 +85,13 @@ struct HeadacheDetailContentView: View {
         .onChange(of: viewModel.saveState) { _, newState in
             if case .saved    = newState { dismiss() }
             if case .deleted  = newState { dismiss() }
+        }
+        // Safety net: if the user swipes-to-dismiss (no Save tap), stop the
+        // mic engine so it doesn't keep capturing audio in the background.
+        .onDisappear {
+            if case .recording = speechService.state {
+                speechService.stop()
+            }
         }
     }
 
@@ -413,23 +427,166 @@ struct HeadacheDetailContentView: View {
 
     private var notesSection: some View {
         FormCard(title: "Notes") {
-            ZStack(alignment: .topLeading) {
-                if viewModel.notes.isEmpty {
-                    Text("Anything else worth recording…")
-                        .font(AppTheme.Typography.body)
-                        .foregroundStyle(AppTheme.Colors.tertiaryText)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                        .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+
+                // ── Mic button row ────────────────────────────────────────
+                HStack {
+                    Spacer()
+                    micButton
                 }
-                TextEditor(text: $viewModel.notes)
-                    .font(AppTheme.Typography.body)
-                    .foregroundStyle(AppTheme.Colors.primaryText)
-                    .tint(AppTheme.Colors.accent)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: 88)
+
+                // ── Live transcript preview ───────────────────────────────
+                if case .recording = speechService.state {
+                    if speechService.partialTranscript.isEmpty {
+                        Text("Listening…")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.tertiaryText)
+                            .padding(.horizontal, 5)
+                    } else {
+                        Text(speechService.partialTranscript)
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.accent)
+                            .padding(.horizontal, 5)
+                            .transition(.opacity)
+                    }
+                }
+
+                // ── Unavailable error ────────────────────────────────────
+                if case .unavailable(let message) = speechService.state {
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppTheme.Colors.riskModerate)
+                        Text(message)
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.secondaryText)
+                        Spacer()
+                        Button("Dismiss") { speechService.resetError() }
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(AppTheme.Colors.accent)
+                    }
+                    .padding(AppTheme.Spacing.xs)
+                    .background(AppTheme.Colors.riskModerate.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+
+                // ── Notes text editor ────────────────────────────────────
+                ZStack(alignment: .topLeading) {
+                    if viewModel.notes.isEmpty {
+                        Text("Anything else worth recording…")
+                            .font(AppTheme.Typography.body)
+                            .foregroundStyle(AppTheme.Colors.tertiaryText)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
+                    }
+                    TextEditor(text: $viewModel.notes)
+                        .font(AppTheme.Typography.body)
+                        .foregroundStyle(AppTheme.Colors.primaryText)
+                        .tint(AppTheme.Colors.accent)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 88)
+                }
             }
         }
+        // ── Paywall sheet (free tier) ─────────────────────────────────────
+        .sheet(isPresented: $showPaywall) { PaywallView() }
+        // ── Phonophobia warning ───────────────────────────────────────────
+        .alert("Sound Sensitivity Detected", isPresented: $showPhonophobiaWarning) {
+            Button("Continue Anyway") { startDictation() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("You've logged sound sensitivity for this attack. Speaking out loud may be uncomfortable. Do you want to continue with voice dictation?")
+        }
+        // ── Auto-stop handler (Apple's 1-min limit) ───────────────────────
+        .onChange(of: speechService.state) { oldState, newState in
+            guard case .recording = oldState, case .idle = newState else { return }
+            guard !isManuallyStopping else { return }
+            // Service auto-stopped — partialTranscript holds the final text
+            appendTranscript(speechService.partialTranscript)
+            speechService.clearTranscript()
+        }
+    }
+
+    // MARK: - Mic button
+
+    @ViewBuilder
+    private var micButton: some View {
+        if SubscriptionManager.shared.isProSubscriber {
+            Button {
+                if case .recording = speechService.state {
+                    // Explicit stop
+                    isManuallyStopping = true
+                    let transcript = speechService.stop()
+                    appendTranscript(transcript)
+                    isManuallyStopping = false
+                } else {
+                    // Start — check phonophobia first
+                    if viewModel.symptoms.contains(.phonophobia) {
+                        showPhonophobiaWarning = true
+                    } else {
+                        startDictation()
+                    }
+                }
+            } label: {
+                MicButtonView(service: speechService)
+            }
+            .buttonStyle(.plain)
+            .disabled({
+                if case .requestingPermissions = speechService.state { return true }
+                return false
+            }())
+        } else {
+            // Free tier — locked with Pro badge
+            Button { showPaywall = true } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("PRO")
+                        .font(.system(size: 10, weight: .bold))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(AppTheme.Colors.accent.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+                .foregroundStyle(AppTheme.Colors.tertiaryText)
+                .padding(.horizontal, AppTheme.Spacing.s)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .background(AppTheme.Colors.elevatedSurface)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(AppTheme.Colors.tertiaryText.opacity(0.25), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Dictation helpers
+
+    private func startDictation() {
+        Task { await speechService.start() }
+    }
+
+    private func appendTranscript(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let separator = viewModel.notes.isEmpty ? "" : "\n"
+        viewModel.notes += separator + trimmed
+    }
+
+    // MARK: - Save (flush transcript first)
+
+    /// Single save entry-point for both the toolbar button and the Accept button.
+    /// If the mic is still recording when the user taps Save, the partial
+    /// transcript is flushed into viewModel.notes before persisting — otherwise
+    /// the in-progress text is lost because it only lived in speechService.
+    private func saveForm() {
+        if case .recording = speechService.state {
+            isManuallyStopping = true
+            let transcript = speechService.stop()   // stops engine, returns final text
+            appendTranscript(transcript)
+            isManuallyStopping = false
+        }
+        viewModel.save()
     }
 
     // MARK: - 9. Disability impact
@@ -461,7 +618,7 @@ struct HeadacheDetailContentView: View {
     private var actionSection: some View {
         VStack(spacing: AppTheme.Spacing.s) {
             Button {
-                viewModel.save()
+                saveForm()
             } label: {
                 Group {
                     if viewModel.saveState == .saving {
