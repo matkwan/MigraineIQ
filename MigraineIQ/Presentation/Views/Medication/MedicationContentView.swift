@@ -2,8 +2,8 @@
 //  MedicationContentView.swift
 //  MigraineIQ
 //
-//  Medication history for the last 30 days, grouped by calendar day.
-//  Swipe-to-delete on each row. "+" toolbar button pushes LogDoseView.
+//  Medicine tab. Medication history for the last 30 days, grouped by
+//  calendar day. Tap/long-press to edit; "+" nav bar button logs a new dose.
 //
 
 import SwiftUI
@@ -12,7 +12,6 @@ struct MedicationContentView: View {
     @State var viewModel: MedicationViewModel
     @State private var showLogDose = false
     @State private var doseToEdit: MedicationDose? = nil
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -36,13 +35,9 @@ struct MedicationContentView: View {
             .padding(AppTheme.Spacing.m)
         }
         .background(AppTheme.Colors.background)
-        .navigationTitle("Medications")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Medicine")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-                    .foregroundStyle(AppTheme.Colors.accent)
-            }
             ToolbarItem(placement: .confirmationAction) {
                 Button {
                     showLogDose = true
@@ -115,7 +110,7 @@ struct MedicationContentView: View {
         EmptyStateView(
             icon: "pills",
             title: "No medications logged",
-            message: "Tap + to log a dose."
+            message: "Tap + in the top right to log your first dose."
         )
     }
 

@@ -2,8 +2,8 @@
 //  MedicationView.swift
 //  MigraineIQ
 //
-//  Shell — reads DependencyContainer, creates MedicationViewModel, wraps
-//  everything in a NavigationStack for pushing LogDoseView.
+//  Medicine tab shell — reads DependencyContainer, creates MedicationViewModel,
+//  wraps everything in a NavigationStack for pushing LogDoseView.
 //
 
 import SwiftUI

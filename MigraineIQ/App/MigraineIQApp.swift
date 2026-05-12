@@ -64,10 +64,10 @@ private struct AppRootView: View {
         }
         .onOpenURL { url in
             guard url.scheme == "migraineiq", url.host == "quicklog" else { return }
-            // Switch to the Log tab first, then signal QuickLog to fire.
-            // The brief delay lets the tab transition settle before the
-            // QuickLogContentView observes the flag change.
-            appState.selectedTab = 1
+            // Switch to Today tab, then signal DashboardContentView to open
+            // the new-attack sheet via the floating + button handler.
+            // The brief delay lets the tab transition settle first.
+            appState.selectedTab = 0
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 appState.pendingQuickLog = true
             }

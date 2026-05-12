@@ -39,13 +39,16 @@ final class AppState {
     // MARK: - Deep link / widget state (ephemeral — not persisted)
 
     /// Set to `true` by the URL handler when `migraineiq://quicklog` is opened.
-    /// `QuickLogContentView` observes this and calls `viewModel.logNow()`,
+    /// `DashboardContentView` observes this and opens the new-attack sheet,
     /// then immediately resets it to false.
     var pendingQuickLog: Bool = false
 
-    /// The currently selected root tab index (0 = Today, 1 = Log, 2 = Insights, 3 = Settings).
-    /// Set by the URL handler before raising `pendingQuickLog` so the Log tab
-    /// is visible when the auto-log fires.
+    /// The currently selected root tab index.
+    ///   0 = Today (Dashboard)   ← floating + button opens new Attack form
+    ///   1 = Calendar
+    ///   2 = Medicine
+    ///   3 = Insights
+    ///   4 = Settings
     var selectedTab: Int = 0
 
     // MARK: - Actions

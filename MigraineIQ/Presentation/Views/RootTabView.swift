@@ -6,9 +6,9 @@
 //  from the environment and hands it down to each tab's view.
 //
 //  Tab indices:
-//    0 — Today (Dashboard)
-//    1 — Log
-//    2 — Calendar
+//    0 — Today (Dashboard)  ← floating + button opens new Attack form
+//    1 — Calendar
+//    2 — Medicine
 //    3 — Insights
 //    4 — Settings
 //
@@ -26,12 +26,12 @@ struct RootTabView: View {
                 .tabItem { Label("Today", systemImage: "circle.hexagongrid.fill") }
                 .tag(0)
 
-            LogView()
-                .tabItem { Label("Log", systemImage: "plus.circle.fill") }
-                .tag(1)
-
             CalendarView()
                 .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tag(1)
+
+            MedicationView()
+                .tabItem { Label("Medicine", systemImage: "pills.fill") }
                 .tag(2)
 
             InsightsView()

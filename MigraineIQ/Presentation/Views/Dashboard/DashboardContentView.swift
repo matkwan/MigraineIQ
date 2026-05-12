@@ -13,6 +13,8 @@ struct DashboardContentView: View {
     @State private var eventToEdit: HeadacheEvent? = nil
     @State private var eventToDelete: HeadacheEvent? = nil
     @State private var showDeleteConfirmation = false
+    /// Controls the new-attack sheet opened by the floating + button.
+    @State private var showNewAttack = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +26,8 @@ struct DashboardContentView: View {
                     recentSection
                 }
                 .padding(AppTheme.Spacing.m)
+                // Extra bottom padding so the last card clears the FAB.
+                .padding(.bottom, 80)
             }
             .background(AppTheme.Colors.background)
             .navigationTitle("Today")
@@ -60,6 +64,48 @@ struct DashboardContentView: View {
                 if case .loading = viewModel.viewState, viewModel.recentAttacks.isEmpty {
                     ProgressView().tint(AppTheme.Colors.accent)
                 }
+            }
+            // ── Floating + button ────────────────────────────────────────
+            .safeAreaInset(edge: .bottom) {
+                HStack {
+                    Spacer()
+                    Button {
+                        showNewAttack = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 56, height: 56)
+                            .background(AppTheme.Colors.accent)
+                            .clipShape(Circle())
+                            .shadow(
+                                color: AppTheme.Colors.accent.opacity(0.45),
+                                radius: 10, x: 0, y: 4
+                            )
+                    }
+                    .padding(.trailing, AppTheme.Spacing.m)
+                    .padding(.bottom, AppTheme.Spacing.s)
+                }
+                .background(.clear)
+            }
+            // ── New-attack sheet ─────────────────────────────────────────
+            .sheet(isPresented: $showNewAttack) {
+                NavigationStack {
+                    HeadacheDetailView(event: HeadacheEvent(startedAt: Date()), isNew: true)
+                }
+                .preferredColorScheme(.dark)
+                .onDisappear {
+                    Task { await viewModel.loadAttacks() }
+                }
+            }
+            // ── Widget / Watch deep-link handler ─────────────────────────
+            // `migraineiq://quicklog` sets pendingQuickLog = true after
+            // switching the tab to Today (tab 0). We open the attack sheet
+            // and clear the flag so a second tap works correctly.
+            .onChange(of: AppState.shared.pendingQuickLog) { _, pending in
+                guard pending else { return }
+                AppState.shared.pendingQuickLog = false
+                showNewAttack = true
             }
         }
     }
@@ -151,7 +197,7 @@ struct DashboardContentView: View {
                 EmptyStateView(
                     icon: "waveform.path.ecg",
                     title: "No attacks logged yet",
-                    message: "Tap the Log tab to record your first migraine."
+                    message: "Tap the + button below to record your first migraine."
                 )
             } else {
                 ForEach(viewModel.recentAttacks) { event in
