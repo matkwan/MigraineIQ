@@ -12,6 +12,7 @@ import SwiftUI
 struct AICoachContentView: View {
     @Bindable var viewModel: AICoachViewModel
     @FocusState private var inputFocused: Bool
+    @State private var speechService = SpeechRecognitionService()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,6 +24,14 @@ struct AICoachContentView: View {
         .background(AppTheme.Colors.background)
         .navigationTitle("AI Coach")
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            // Stop the mic engine if the user navigates away mid-recording.
+            // Without this the AVAudioEngine keeps capturing until the 58 s
+            // session timer fires.
+            if case .recording = speechService.state {
+                speechService.stop()
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if case .failed = viewModel.sendState {
@@ -116,12 +125,82 @@ struct AICoachContentView: View {
                         }
                     }
 
+                // Mic button — only shown when Coach is unlocked and not streaming.
+                // Voice recognition is already Pro-gated via isCoachUnlocked.
+                if viewModel.isCoachUnlocked,
+                   viewModel.sendState != .streaming {
+                    coachMicButton
+                }
+
                 actionButton
             }
             .padding(.horizontal, AppTheme.Spacing.m)
             .padding(.vertical, AppTheme.Spacing.s)
             .background(AppTheme.Colors.cardBackground)
         }
+        // ── Live transcript → input field ────────────────────────────────
+        // Replace inputText as each partial result arrives. The `guard
+        // !transcript.isEmpty` prevents stop() clearing the field after the
+        // session ends (stop() sets partialTranscript = "" synchronously, but
+        // by then inputText already holds the final question).
+        .onChange(of: speechService.partialTranscript) { _, transcript in
+            guard !transcript.isEmpty else { return }
+            guard case .recording = speechService.state else { return }
+            viewModel.inputText = transcript
+        }
+        // ── Auto-stop (58 s limit) ───────────────────────────────────────
+        .onChange(of: speechService.state) { old, new in
+            guard case .recording = old, case .idle = new else { return }
+            // inputText already holds the final text from the live updates.
+            // Clean up the service's internal partial transcript.
+            speechService.clearTranscript()
+        }
+    }
+
+    // MARK: - Coach mic button (compact — fits inline in the input bar)
+
+    @ViewBuilder
+    private var coachMicButton: some View {
+        Button {
+            switch speechService.state {
+            case .recording:
+                // Stop recording; inputText already has the dictated question.
+                let final = speechService.stop()
+                // Edge case: if live updates didn't fire (very short utterance),
+                // use the returned string directly.
+                if viewModel.inputText.isEmpty, !final.isEmpty {
+                    viewModel.inputText = final
+                }
+            case .unavailable:
+                speechService.resetError()
+            default:
+                Task { await speechService.start() }
+            }
+        } label: {
+            Group {
+                switch speechService.state {
+                case .idle:
+                    Image(systemName: "mic")
+                        .foregroundStyle(AppTheme.Colors.tertiaryText)
+                case .recording:
+                    Image(systemName: "mic.fill")
+                        .foregroundStyle(Color.red)
+                case .requestingPermissions:
+                    ProgressView()
+                        .tint(AppTheme.Colors.accent)
+                        .scaleEffect(0.75)
+                case .unavailable:
+                    Image(systemName: "mic.slash")
+                        .foregroundStyle(AppTheme.Colors.riskModerate)
+                }
+            }
+            .font(.system(size: 22))
+            .frame(width: 28, height: 28)
+        }
+        .disabled({
+            if case .requestingPermissions = speechService.state { return true }
+            return false
+        }())
     }
 
     private var offlineBanner: some View {
@@ -152,6 +231,14 @@ struct AICoachContentView: View {
 
         default:
             Button {
+                // If mic is still active when the user taps send, stop it
+                // first so the final transcript lands in inputText.
+                if case .recording = speechService.state {
+                    let final = speechService.stop()
+                    if viewModel.inputText.isEmpty, !final.isEmpty {
+                        viewModel.inputText = final
+                    }
+                }
                 viewModel.send()
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
