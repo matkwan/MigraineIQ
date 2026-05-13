@@ -17,6 +17,7 @@ struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var manager = SubscriptionManager.shared
     @State private var selectedPlan: String = SubscriptionManager.ProductID.annual
+    @State private var loadFailed = false
 
     // MARK: - Body
 
@@ -48,7 +49,20 @@ struct PaywallView: View {
         .background(AppTheme.Colors.background)
         .preferredColorScheme(.dark)
         .task {
-            await manager.loadProducts()
+            loadFailed = false
+            // Load with a 10-second timeout so the spinner never runs forever.
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await manager.loadProducts() }
+                group.addTask {
+                    try? await Task.sleep(for: .seconds(10))
+                }
+                // Cancel remaining tasks once either finishes first.
+                await group.next()
+                group.cancelAll()
+            }
+            if manager.products.isEmpty {
+                loadFailed = true
+            }
         }
     }
 
@@ -134,7 +148,28 @@ struct PaywallView: View {
 
     private var planCards: some View {
         VStack(spacing: AppTheme.Spacing.s) {
-            if manager.products.isEmpty {
+            if loadFailed {
+                // Products failed to load — show a retry option so the
+                // user (and App Store reviewer) aren't stuck on a spinner.
+                VStack(spacing: AppTheme.Spacing.s) {
+                    Text("Couldn't load subscription options.")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(AppTheme.Colors.secondaryText)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        Task {
+                            loadFailed = false
+                            await manager.loadProducts()
+                            if manager.products.isEmpty { loadFailed = true }
+                        }
+                    } label: {
+                        Text("Try Again")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(AppTheme.Colors.accent)
+                    }
+                }
+                .padding(.vertical, AppTheme.Spacing.xl)
+            } else if manager.products.isEmpty {
                 ProgressView()
                     .tint(AppTheme.Colors.accent)
                     .padding(.vertical, AppTheme.Spacing.xl)
@@ -200,7 +235,7 @@ struct PaywallView: View {
 
     private var selectedPriceDescription: String {
         guard let product = manager.products.first(where: { $0.id == selectedPlan }) else {
-            return ""
+            return "the selected plan"
         }
         return manager.displayPrice(for: product)
     }

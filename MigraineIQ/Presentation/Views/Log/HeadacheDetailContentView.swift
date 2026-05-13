@@ -366,18 +366,6 @@ struct HeadacheDetailContentView: View {
                 .tint(AppTheme.Colors.accent)
                 .autocorrectionDisabled()
 
-                if !viewModel.parsedTriggers.isEmpty {
-                    FlowRow(items: Array(viewModel.parsedTriggers).sorted()) { tag in
-                        Text(tag)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(AppTheme.Colors.accent)
-                            .padding(.horizontal, AppTheme.Spacing.xs)
-                            .padding(.vertical, AppTheme.Spacing.xxs)
-                            .background(AppTheme.Colors.accent.opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                }
-
                 Text("Separate multiple triggers with commas")
                     .font(AppTheme.Typography.caption)
                     .foregroundStyle(AppTheme.Colors.tertiaryText)
@@ -426,14 +414,8 @@ struct HeadacheDetailContentView: View {
     // MARK: - 8. Notes
 
     private var notesSection: some View {
-        FormCard(title: "Notes") {
+        FormCard(title: "Notes", trailing: { micButton }) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-
-                // ── Mic button row ────────────────────────────────────────
-                HStack {
-                    Spacer()
-                    micButton
-                }
 
                 // ── Live transcript preview ───────────────────────────────
                 if case .recording = speechService.state {
@@ -663,16 +645,42 @@ struct HeadacheDetailContentView: View {
 
 // MARK: - FormCard
 
-private struct FormCard<Content: View>: View {
+private struct FormCard<Content: View, Trailing: View>: View {
     let title: String
-    @ViewBuilder let content: () -> Content
+    @ViewBuilder let trailing: () -> Trailing
+    @ViewBuilder let content:  () -> Content
+
+    /// Convenience init with no trailing accessory (backwards-compatible).
+    init(
+        title: String,
+        @ViewBuilder content: @escaping () -> Content
+    ) where Trailing == EmptyView {
+        self.title    = title
+        self.trailing = { EmptyView() }
+        self.content  = content
+    }
+
+    /// Init with a trailing accessory view (e.g. a mic button).
+    init(
+        title: String,
+        @ViewBuilder trailing: @escaping () -> Trailing,
+        @ViewBuilder content:  @escaping () -> Content
+    ) {
+        self.title    = title
+        self.trailing = trailing
+        self.content  = content
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(AppTheme.Colors.tertiaryText)
-                .kerning(0.8)
+            HStack(alignment: .center) {
+                Text(title.uppercased())
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.tertiaryText)
+                    .kerning(0.8)
+                Spacer()
+                trailing()
+            }
 
             content()
         }

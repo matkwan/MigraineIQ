@@ -204,14 +204,8 @@ struct LogDoseContentView: View {
     // MARK: - 6. Notes
 
     private var notesSection: some View {
-        DoseCard(title: "Notes") {
+        DoseCard(title: "Notes", trailing: { micButton }) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-
-                // ── Mic button row ────────────────────────────────────────
-                HStack {
-                    Spacer()
-                    micButton
-                }
 
                 // ── Live transcript preview ───────────────────────────────
                 if case .recording = speechService.state {
@@ -393,16 +387,40 @@ struct LogDoseContentView: View {
 
 // MARK: - DoseCard
 
-private struct DoseCard<Content: View>: View {
+private struct DoseCard<Content: View, Trailing: View>: View {
     let title: String
-    @ViewBuilder let content: () -> Content
+    @ViewBuilder let trailing: () -> Trailing
+    @ViewBuilder let content:  () -> Content
+
+    init(
+        title: String,
+        @ViewBuilder content: @escaping () -> Content
+    ) where Trailing == EmptyView {
+        self.title    = title
+        self.trailing = { EmptyView() }
+        self.content  = content
+    }
+
+    init(
+        title: String,
+        @ViewBuilder trailing: @escaping () -> Trailing,
+        @ViewBuilder content:  @escaping () -> Content
+    ) {
+        self.title    = title
+        self.trailing = trailing
+        self.content  = content
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(AppTheme.Colors.tertiaryText)
-                .kerning(0.8)
+            HStack(alignment: .center) {
+                Text(title.uppercased())
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.tertiaryText)
+                    .kerning(0.8)
+                Spacer()
+                trailing()
+            }
 
             content()
         }

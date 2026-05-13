@@ -17,7 +17,10 @@ struct SettingsView: View {
         SettingsContentView(
             viewModel: container.makeSettingsViewModel(),
             onSeedSampleData: {
-                await SampleDataSeeder.seed(into: container.headacheRepository)
+                await SampleDataSeeder.seed(
+                    into: container.headacheRepository,
+                    medicationRepo: container.medicationRepository
+                )
             }
         )
         #else
