@@ -16,8 +16,8 @@
 //  Pro tier
 //  ─────────────────────────────────────────────────────────────────────────
 //  Product IDs:
-//    com.kieny.migraineiq.pro.monthly   ($6.99 / month, 7-day trial)
-//    com.kieny.migraineiq.pro.annual    ($49.99 / year, 7-day trial)
+//    com.kieny.MigraineIQ.pro.monthly   ($6.99 / month, 7-day trial)
+//    com.kieny.MigraineIQ.pro.annual    ($49.99 / year, 7-day trial)
 //  Both belong to a single subscription group so only one can be active.
 //
 
@@ -31,8 +31,8 @@ final class SubscriptionManager {
     // MARK: - Product IDs
 
     enum ProductID {
-        static let monthly = "com.kieny.migraineiq.pro.monthly"
-        static let annual  = "com.kieny.migraineiq.pro.annual"
+        static let monthly = "com.kieny.MigraineIQ.pro.monthly"
+        static let annual  = "com.kieny.MigraineIQ.pro.annual"
         static let all: [String] = [monthly, annual]
     }
 

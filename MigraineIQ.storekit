@@ -37,7 +37,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.kieny.migraineiq.pro.monthly",
+          "productID" : "com.kieny.MigraineIQ.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Pro Monthly",
           "subscriptionGroupID" : "20F3A1B2-9C4D-4E5F-A678-B91C2D3E4F50",
@@ -63,7 +63,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.kieny.migraineiq.pro.annual",
+          "productID" : "com.kieny.MigraineIQ.pro.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Pro Annual",
           "subscriptionGroupID" : "20F3A1B2-9C4D-4E5F-A678-B91C2D3E4F50",

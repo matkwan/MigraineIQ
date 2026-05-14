@@ -200,35 +200,53 @@ struct PaywallView: View {
                     .padding(.horizontal, AppTheme.Spacing.m)
             }
 
-            // Purchase button
+            // Purchase button — when products haven't loaded, the button
+            // triggers a retry so it's never a visible-but-silent no-op.
+            let productsReady = !manager.products.isEmpty && !loadFailed
             Button {
-                Task {
-                    guard let product = manager.products.first(where: { $0.id == selectedPlan })
-                    else { return }
-                    let success = await manager.purchase(product)
-                    if success { dismiss() }
+                if !productsReady {
+                    // Retry loading instead of silently doing nothing.
+                    Task {
+                        loadFailed = false
+                        await manager.loadProducts()
+                        if manager.products.isEmpty { loadFailed = true }
+                    }
+                } else {
+                    Task {
+                        guard let product = manager.products.first(where: { $0.id == selectedPlan })
+                        else { return }
+                        let success = await manager.purchase(product)
+                        if success { dismiss() }
+                    }
                 }
             } label: {
                 Group {
                     if manager.isPurchasing {
                         ProgressView().tint(.white)
                     } else {
-                        Text("Start Free Trial")
+                        Text(productsReady ? "Start Free Trial" : "Retry Loading Plans")
                             .font(AppTheme.Typography.body.weight(.semibold))
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(AppTheme.Colors.accent, in: RoundedRectangle(cornerRadius: 14))
+                .background(
+                    productsReady
+                        ? AppTheme.Colors.accent
+                        : AppTheme.Colors.accent.opacity(0.4),
+                    in: RoundedRectangle(cornerRadius: 14)
+                )
                 .foregroundStyle(.white)
             }
-            .disabled(manager.isPurchasing || manager.products.isEmpty)
+            .disabled(manager.isPurchasing)
             .padding(.horizontal, AppTheme.Spacing.m)
             .padding(.top, AppTheme.Spacing.m)
 
-            Text("Then \(selectedPriceDescription). Cancel anytime.")
-                .font(AppTheme.Typography.caption)
-                .foregroundStyle(AppTheme.Colors.tertiaryText)
+            if productsReady {
+                Text("Then \(selectedPriceDescription). Cancel anytime.")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundStyle(AppTheme.Colors.tertiaryText)
+            }
         }
         .padding(.bottom, AppTheme.Spacing.m)
     }
