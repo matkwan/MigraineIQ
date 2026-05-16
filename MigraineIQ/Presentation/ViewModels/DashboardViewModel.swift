@@ -178,6 +178,12 @@ final class DashboardViewModel {
             self.riskState = .loaded(alert)
             persistRisk(alert)
             TokenGuard.recordRiskForecastUse()
+        } catch is CancellationError {
+            // Task was cancelled — e.g. pull-to-refresh fired while a fetch
+            // was already in flight. This is expected, not an error; the
+            // replacement task will complete normally. Leave riskState as-is
+            // so the UI doesn't flash an error card between the two loads.
+            return
         } catch {
             // Prefer a non-expired cached result over a red error card.
             // An expired (stale) entry is not used here — it would be more
