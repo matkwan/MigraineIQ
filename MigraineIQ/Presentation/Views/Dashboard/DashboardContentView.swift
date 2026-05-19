@@ -296,6 +296,21 @@ private struct RiskCard: View {
                     .font(.system(size: 11))
             }
             .foregroundStyle(AppTheme.Colors.tertiaryText)
+
+            // Apple Weather attribution — required by WeatherKit terms.
+            // Must display the trademark and link to the legal page.
+            Divider().background(AppTheme.Colors.elevatedSurface)
+
+            Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
+                HStack(spacing: 4) {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 10, weight: .medium))
+                    Text("Weather")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundStyle(AppTheme.Colors.tertiaryText)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
         }
         .padding(AppTheme.Spacing.m)
         .frame(maxWidth: .infinity, alignment: .leading)
